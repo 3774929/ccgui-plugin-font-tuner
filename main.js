@@ -45,14 +45,9 @@ export default function activate(ctx) {
     return `0 ${Math.max(1, Math.round(ss / 3))}px ${ss}px ${hsla(color)}`;
   }
 
-  // 内容区域选择器：覆盖常见的会话/markdown 容器与输入框；不命中时自然无效，无副作用
-  const CONTENT_SELECTOR = [
-    ".prose",
-    '[class*="markdown"]',
-    '[class*="message"]',
-    "main article",
-    ".composer-editable",
-  ].join(", ");
+  // 内容区域选择器：宿主聊天输出的 Markdown 容器 .prose-chat
+  // （desktop-cc-gui src/features/chat/components/Markdown.tsx）与输入框 .composer-editable
+  const CONTENT_SELECTOR = ".prose-chat, .composer-editable";
 
   const CODE_SELECTOR = 'pre, code, kbd, samp, [class*="code-"]';
 

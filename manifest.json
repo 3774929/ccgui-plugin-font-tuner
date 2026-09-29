@@ -1,7 +1,7 @@
 {
   "id": "font-tuner",
   "name": "字体调校",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "minAppVersion": "1.0.0",
   "sdkVersion": "^0.3",
   "description": "自定义窗口/内容/代码字体，配置字号、行高、字距、字体平滑、文本渲染，并支持字体描边加粗与 HSLA 阴影。",

@@ -31,7 +31,7 @@ Inter, "Microsoft YaHei", sans-serif
 ## 实现方式
 
 - 通过 `ctx.theme.injectCss` 注入样式（卸载插件即自动移除，不残留）
-- 内容区域采用宽容选择器（`.prose`、`[class*="markdown"]`、`[class*="message"]`、`.composer-editable` 等），未命中的选择器自然失效，无副作用
+- 内容区域精确匹配宿主聊天输出容器 `.prose-chat` 与输入框 `.composer-editable`，标题/列表等子元素字号按 `em` 相对级联
 - 字体栈输入会过滤 `; { } / * @ \` 等字符，防止越界注入
 
 ## 权限说明
