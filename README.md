@@ -16,6 +16,9 @@ CC GUI 插件：自定义窗口与内容字体，并对字体渲染做配置化�
 | 字距 | -0.05–0.3em 滑杆，0 位 = 跟随宿主 |
 | 字体平滑 | `-webkit-font-smoothing`：跟随宿主 / antialiased / none |
 | 文本渲染 | `text-rendering`：跟随宿主 / optimizeLegibility / optimizeSpeed / geometricPrecision |
+| 字体描边 | `-webkit-text-stroke` 0–2px 滑杆，描边色跟随文字色，视觉上加粗字形；0 位 = 关闭 |
+| 阴影大小 | `text-shadow` 模糊半径 0–12px 滑杆，偏移随大小联动；0 位 = 关闭 |
+| 阴影颜色 | HSLA 四通道滑杆（色相 0–360° / 饱和度 / 亮度 / 透明度）+ 实时色块预览 |
 | 启用开关 | 一键停用全部修改，方便 A/B 对比 |
 | 实时预览 | 中英文 + 数字样例即时反映当前配置 |
 

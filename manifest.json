@@ -1,10 +1,10 @@
 {
   "id": "font-tuner",
   "name": "字体调校",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "minAppVersion": "1.0.0",
   "sdkVersion": "^0.3",
-  "description": "自定义窗口界面字体、对话内容字体与代码字体，并可配置字号、行高、字距、字体平滑与文本渲染方式。",
+  "description": "自定义窗口/内容/代码字体，配置字号、行高、字距、字体平滑、文本渲染，并支持字体描边加粗与 HSLA 阴影。",
   "author": "3774929",
   "repo": "3774929/ccgui-plugin-font-tuner",
   "tier": "js",

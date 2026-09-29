@@ -14,6 +14,9 @@ export default function activate(ctx) {
     letterSpacing: 0,    // 内容字距 em（0 = 跟随宿主）
     smoothing: "auto",   // auto | antialiased | none
     textRendering: "auto", // auto | optimizeLegibility | optimizeSpeed | geometricPrecision
+    strokeWidth: 0,      // 字体描边粗细 px（0 = 关闭；描边色跟随文字色，视觉加粗）
+    shadowSize: 0,       // 字体阴影大小 px（text-shadow 模糊半径，0 = 关闭）
+    shadowColor: { h: 0, s: 0, l: 0, a: 0.35 }, // 阴影颜色 HSLA
     enabled: true,
   };
 
@@ -28,6 +31,18 @@ export default function activate(ctx) {
     const n = Number(v);
     if (!Number.isFinite(n)) return 0;
     return Math.min(max, Math.max(min, n));
+  }
+
+  function hsla(c) {
+    const sc = c && typeof c === "object" ? c : DEFAULTS.shadowColor;
+    return `hsla(${num(sc.h, 0, 360)}, ${num(sc.s, 0, 100)}%, ${num(sc.l, 0, 100)}%, ${num(sc.a, 0, 1)})`;
+  }
+
+  // 阴影偏移随大小联动，最小 1px
+  function shadowCss(size, color) {
+    const ss = num(size, 0, 12);
+    if (ss <= 0) return "";
+    return `0 ${Math.max(1, Math.round(ss / 3))}px ${ss}px ${hsla(color)}`;
   }
 
   // 内容区域选择器：覆盖常见的会话/markdown 容器与输入框；不命中时自然无效，无副作用
@@ -67,6 +82,10 @@ export default function activate(ctx) {
     if (lh > 0) contentProps.push(`line-height: ${lh} !important`);
     const ls = num(cfg.letterSpacing, -0.2, 1);
     if (ls !== 0) contentProps.push(`letter-spacing: ${ls}em !important`);
+    const sw = num(cfg.strokeWidth, 0, 3);
+    if (sw > 0) contentProps.push(`-webkit-text-stroke: ${sw}px currentColor !important`);
+    const shadow = shadowCss(cfg.shadowSize, cfg.shadowColor);
+    if (shadow) contentProps.push(`text-shadow: ${shadow} !important`);
     if (contentProps.length) blocks.push(`${CONTENT_SELECTOR} { ${contentProps.join("; ")}; }`);
 
     if (code) blocks.push(`${CODE_SELECTOR} { font-family: ${code} !important; }`);
@@ -135,6 +154,12 @@ export default function activate(ctx) {
 
     const set = useCallback((patch) => setCfg((prev) => ({ ...prev, ...patch })), []);
 
+    // 描边/阴影派生值
+    const sw = num(cfg.strokeWidth, 0, 3);
+    const ss = num(cfg.shadowSize, 0, 12);
+    const sc = { ...DEFAULTS.shadowColor, ...(cfg.shadowColor && typeof cfg.shadowColor === "object" ? cfg.shadowColor : {}) };
+    const setShadow = (patch) => set({ shadowColor: { ...sc, ...patch } });
+
     const previewCss = {
       fontFamily: sanitizeFontStack(cfg.contentFont) || undefined,
       fontSize: num(cfg.contentSize, 0, 48) > 0 ? `${num(cfg.contentSize, 0, 48)}px` : undefined,
@@ -142,6 +167,8 @@ export default function activate(ctx) {
       letterSpacing: num(cfg.letterSpacing, -0.2, 1) !== 0 ? `${num(cfg.letterSpacing, -0.2, 1)}em` : undefined,
       WebkitFontSmoothing: cfg.smoothing === "auto" ? undefined : cfg.smoothing,
       textRendering: cfg.textRendering === "auto" ? undefined : cfg.textRendering,
+      WebkitTextStroke: sw > 0 ? `${sw}px currentColor` : undefined,
+      textShadow: shadowCss(cfg.shadowSize, cfg.shadowColor) || undefined,
     };
 
     return h("div", { style: { padding: 16, maxWidth: 640, display: "flex", flexDirection: "column", gap: 14, color: "var(--color-text-primary, inherit)" } },
@@ -180,6 +207,25 @@ export default function activate(ctx) {
             h("option", { value: "optimizeLegibility" }, "optimizeLegibility"),
             h("option", { value: "optimizeSpeed" }, "optimizeSpeed"),
             h("option", { value: "geometricPrecision" }, "geometricPrecision")))),
+
+      h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 } },
+        h(Field, { label: `字体描边：${sw > 0 ? sw + "px" : "关闭"}`, hint: "-webkit-text-stroke，沿字形描边加粗；描边色跟随文字色" },
+          h("input", { type: "range", min: 0, max: 2, step: 0.1, value: sw, onChange: (e) => set({ strokeWidth: Number(e.target.value) }) })),
+        h(Field, { label: `阴影大小：${ss > 0 ? ss + "px" : "关闭"}`, hint: "text-shadow 模糊半径，偏移随大小联动" },
+          h("input", { type: "range", min: 0, max: 12, step: 0.5, value: ss, onChange: (e) => set({ shadowSize: Number(e.target.value) }) }))),
+
+      h(Field, { label: "阴影颜色", hint: `HSLA — ${hsla(sc)}` },
+        h("div", { style: { display: "flex", gap: 10, alignItems: "center" } },
+          h("span", { style: { width: 44, height: 44, flex: "none", borderRadius: 8, border: "1px solid var(--color-separator-border, rgba(127,127,127,.3))", background: hsla(sc) } }),
+          h("div", { style: { flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } },
+            h(Field, { label: `色相 H：${Math.round(num(sc.h, 0, 360))}°` },
+              h("input", { type: "range", min: 0, max: 360, step: 1, value: num(sc.h, 0, 360), onChange: (e) => setShadow({ h: Number(e.target.value) }) })),
+            h(Field, { label: `饱和度 S：${Math.round(num(sc.s, 0, 100))}%` },
+              h("input", { type: "range", min: 0, max: 100, step: 1, value: num(sc.s, 0, 100), onChange: (e) => setShadow({ s: Number(e.target.value) }) })),
+            h(Field, { label: `亮度 L：${Math.round(num(sc.l, 0, 100))}%` },
+              h("input", { type: "range", min: 0, max: 100, step: 1, value: num(sc.l, 0, 100), onChange: (e) => setShadow({ l: Number(e.target.value) }) })),
+            h(Field, { label: `透明度 A：${num(sc.a, 0, 1).toFixed(2)}` },
+              h("input", { type: "range", min: 0, max: 1, step: 0.01, value: num(sc.a, 0, 1), onChange: (e) => setShadow({ a: Number(e.target.value) }) }))))),
 
       h("div", { style: { border: "1px solid var(--color-separator-border, rgba(127,127,127,.3))", borderRadius: 8, padding: 12 } },
         h("div", { style: { ...labelStyle, marginBottom: 6 } }, "实时预览"),
